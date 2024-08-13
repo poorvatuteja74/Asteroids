@@ -43,6 +43,28 @@ class Player {
     }
 }
 
+class Projectile {
+    constructor({ position, velocity }) {
+        this.position = position;
+        this.velocity = velocity;
+        this.radius = 5;
+    }
+
+    draw() {
+        c.beginPath();
+        c.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2, false);
+        c.closePath();
+        c.fillStyle = 'white';
+        c.fill();
+    }
+
+    update() {
+        this.draw();
+        this.position.x += this.velocity.x;
+        this.position.y += this.velocity.y;
+    }
+}
+
 const player = new Player({
     position: { x: canvas.width / 2, y: canvas.height / 2 },
     velocity: { x: 0, y: 0 }
@@ -54,34 +76,49 @@ const keys = {
     d: { pressed: false }
 }
 
-const SPEED =3
-const Rotational_Speed = 0.05
-const friction = 0.97
+const SPEED = 3;
+const ROTATIONAL_SPEED = 0.05;
+const FRICTION = 0.97;
+
+const projectiles = [];
 
 function animate() {
     c.fillStyle = 'black';
     c.fillRect(0, 0, canvas.width, canvas.height);
     window.requestAnimationFrame(animate);
 
-    if (keys.w.pressed) {
-        player.velocity.x = Math.cos(player.rotation) * SPEED; // Adjust the speed as needed
-        player.velocity.y = Math.sin(player.rotation) * SPEED; // Adjust the speed as needed
-    } else if (!keys.w.pressed){
-        player.velocity.x *= friction;
-        player.velocity.y *= friction;
-    }
-
     player.update();
 
-    player.velocity.x = 0;
-    if (keys.w.pressed) {
-        player.velocity.x = 1;
-    } 
+    // Update and draw projectiles
+    for (let i = projectiles.length - 1; i >= 0; i--) {
+        const projectile = projectiles[i];
+        projectile.update();
 
+        // Remove projectile if it goes off-screen
+        if (
+            projectile.position.x < 0 ||
+            projectile.position.x > canvas.width ||
+            projectile.position.y < 0 ||
+            projectile.position.y > canvas.height
+        ) {
+            projectiles.splice(i, 1);
+        }
+    }
+
+    // Handle player movement
+    if (keys.w.pressed) {
+        player.velocity.x = Math.cos(player.rotation) * SPEED;
+        player.velocity.y = Math.sin(player.rotation) * SPEED;
+    } else {
+        player.velocity.x *= FRICTION;
+        player.velocity.y *= FRICTION;
+    }
+
+    if (keys.a.pressed) {
+        player.rotation -= ROTATIONAL_SPEED;
+    } 
     if (keys.d.pressed) {
-        player.rotation += Rotational_Speed;
-    } else if (keys.a.pressed) {
-        player.rotation -= Rotational_Speed;
+        player.rotation += ROTATIONAL_SPEED;
     }
 }
 
@@ -97,6 +134,18 @@ window.addEventListener('keydown', (event) => {
             break;
         case 'KeyD':
             keys.d.pressed = true;
+            break;
+        case 'Space':
+            projectiles.push(new Projectile({
+                position: {
+                    x: player.position.x + Math.cos(player.rotation) * 30,
+                    y: player.position.y + Math.sin(player.rotation) * 30
+                },
+                velocity: {
+                    x: Math.cos(player.rotation) * 5,
+                    y: Math.sin(player.rotation) * 5
+                }
+            }));
             break;
     }
 });
