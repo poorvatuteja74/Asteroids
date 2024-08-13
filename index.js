@@ -54,17 +54,21 @@ const keys = {
     d: { pressed: false }
 }
 
+const SPEED =3
+const Rotational_Speed = 0.05
+const friction = 0.97
+
 function animate() {
     c.fillStyle = 'black';
     c.fillRect(0, 0, canvas.width, canvas.height);
     window.requestAnimationFrame(animate);
 
     if (keys.w.pressed) {
-        player.velocity.x = Math.cos(player.rotation) * 5; // Adjust the speed as needed
-        player.velocity.y = Math.sin(player.rotation) * 5; // Adjust the speed as needed
-    } else {
-        player.velocity.x = 0;
-        player.velocity.y = 0;
+        player.velocity.x = Math.cos(player.rotation) * SPEED; // Adjust the speed as needed
+        player.velocity.y = Math.sin(player.rotation) * SPEED; // Adjust the speed as needed
+    } else if (!keys.w.pressed){
+        player.velocity.x *= friction;
+        player.velocity.y *= friction;
     }
 
     player.update();
@@ -75,9 +79,9 @@ function animate() {
     } 
 
     if (keys.d.pressed) {
-        player.rotation += 0.01;
+        player.rotation += Rotational_Speed;
     } else if (keys.a.pressed) {
-        player.rotation -= 0.01;
+        player.rotation -= Rotational_Speed;
     }
 }
 
