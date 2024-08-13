@@ -59,6 +59,14 @@ function animate() {
     c.fillRect(0, 0, canvas.width, canvas.height);
     window.requestAnimationFrame(animate);
 
+    if (keys.w.pressed) {
+        player.velocity.x = Math.cos(player.rotation) * 5; // Adjust the speed as needed
+        player.velocity.y = Math.sin(player.rotation) * 5; // Adjust the speed as needed
+    } else {
+        player.velocity.x = 0;
+        player.velocity.y = 0;
+    }
+
     player.update();
 
     player.velocity.x = 0;
