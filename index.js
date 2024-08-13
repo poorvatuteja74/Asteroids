@@ -68,7 +68,9 @@ function animate() {
 
     if (keys.d.pressed) {
         player.rotation += 0.01;
-    } 
+    } else if (keys.a.pressed) {
+        player.rotation -= 0.01;
+    }
 }
 
 animate();
