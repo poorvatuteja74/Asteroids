@@ -65,6 +65,28 @@ class Projectile {
     }
 }
 
+class Asteroid {
+    constructor({ position, velocity }) {
+        this.position = position;
+        this.velocity = velocity;
+        this.radius = Math.random() * 30 + 10; // Random radius between 10 and 40
+    }
+
+    draw() {
+        c.beginPath();
+        c.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2, false);
+        c.closePath();
+        c.strokeStyle = 'white';
+        c.stroke();
+    }
+
+    update() {
+        this.draw();
+        this.position.x += this.velocity.x;
+        this.position.y += this.velocity.y;
+    }
+}
+
 const player = new Player({
     position: { x: canvas.width / 2, y: canvas.height / 2 },
     velocity: { x: 0, y: 0 }
@@ -79,8 +101,27 @@ const keys = {
 const SPEED = 3;
 const ROTATIONAL_SPEED = 0.05;
 const FRICTION = 0.97;
+const PROJECTILE_SPEED = 5;
 
 const projectiles = [];
+const asteroids = []; // Initialize the asteroids array
+
+// Add a new asteroid every 3 seconds
+window.setInterval(() => {
+
+    
+    const x = Math.random() * canvas.width;
+    const y = Math.random() * canvas.height;
+    const vx = (Math.random() - 0.5) * 4; // Random velocity between -1 and 1
+    const vy = (Math.random() - 0.5) * 4; // Random velocity between -1 and 1
+
+    asteroids.push(
+        new Asteroid({
+            position: { x, y },
+            velocity: { x: vx, y: vy }
+        })
+    );
+}, 3000);
 
 function animate() {
     c.fillStyle = 'black';
@@ -102,6 +143,22 @@ function animate() {
             projectile.position.y > canvas.height
         ) {
             projectiles.splice(i, 1);
+        }
+    }
+
+    // Update and draw asteroids
+    for (let i = asteroids.length - 1; i >= 0; i--) {
+        const asteroid = asteroids[i];
+        asteroid.update();
+
+        // Remove asteroid if it goes off-screen
+        if (
+            asteroid.position.x < 0 ||
+            asteroid.position.x > canvas.width ||
+            asteroid.position.y < 0 ||
+            asteroid.position.y > canvas.height
+        ) {
+            asteroids.splice(i, 1);
         }
     }
 
@@ -138,12 +195,12 @@ window.addEventListener('keydown', (event) => {
         case 'Space':
             projectiles.push(new Projectile({
                 position: {
-                    x: player.position.x + Math.cos(player.rotation) * 30,
-                    y: player.position.y + Math.sin(player.rotation) * 30
+                    x: player.position.x + Math.cos(player.rotation) * PROJECTILE_SPEED,
+                    y: player.position.y + Math.sin(player.rotation) * PROJECTILE_SPEED
                 },
                 velocity: {
-                    x: Math.cos(player.rotation) * 5,
-                    y: Math.sin(player.rotation) * 5
+                    x: Math.cos(player.rotation) * PROJECTILE_SPEED,
+                    y: Math.sin(player.rotation) * PROJECTILE_SPEED
                 }
             }));
             break;
