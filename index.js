@@ -153,10 +153,10 @@ function animate() {
 
         // Remove asteroid if it goes off-screen
         if (
-            asteroid.position.x < 0 ||
-            asteroid.position.x > canvas.width ||
-            asteroid.position.y < 0 ||
-            asteroid.position.y > canvas.height
+            asteroid.position.x + asteroid.radius < 0 ||
+            asteroid.position.x - asteroid.radius > canvas.width ||
+            asteroid.position.y - asteroid.radius < 0 ||
+            asteroid.position.y + asteroid.radius > canvas.height
         ) {
             asteroids.splice(i, 1);
         }
