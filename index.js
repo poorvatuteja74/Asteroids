@@ -20,12 +20,10 @@ class Player {
         c.rotate(this.rotation);
         c.translate(-this.position.x, -this.position.y);
         c.beginPath();
-        // Draw circle
         c.arc(this.position.x, this.position.y, 5, 0, Math.PI * 2);
         c.fillStyle = '#b7c7a5';
         c.fill();
 
-        // Draw triangle
         c.beginPath();
         c.moveTo(this.position.x + 30, this.position.y);
         c.lineTo(this.position.x - 10, this.position.y - 10);
@@ -40,6 +38,26 @@ class Player {
         this.draw();
         this.position.x += this.velocity.x;
         this.position.y += this.velocity.y;
+    }
+
+    getVertices() {
+        const cos = Math.cos(this.rotation);
+        const sin = Math.sin(this.rotation);
+
+        return [
+            {
+                x: this.position.x + cos * 30 - sin * 0,
+                y: this.position.y + sin * 30 + cos * 0,
+            },
+            {
+                x: this.position.x + cos * -10 - sin * 10,
+                y: this.position.y + sin * -10 + cos * 10,
+            },
+            {
+                x: this.position.x + cos * -10 - sin * -10,
+                y: this.position.y + sin * -10 + cos * -10,
+            },
+        ];
     }
 }
 
@@ -96,7 +114,7 @@ const keys = {
     w: { pressed: false },
     a: { pressed: false },
     d: { pressed: false }
-}
+};
 
 const SPEED = 3;
 const ROTATIONAL_SPEED = 0.05;
@@ -107,7 +125,7 @@ const projectiles = [];
 const asteroids = []; // Initialize the asteroids array
 
 // Add a new asteroid every 3 seconds
-window.setInterval(() => {
+const intervalID= window.setInterval(() => {
     const x = Math.random() * canvas.width;
     const y = Math.random() * canvas.height;
     const vx = (Math.random() - 0.5) * 4; // Random velocity between -2 and 2
@@ -125,13 +143,57 @@ function circleCollision(circle1, circle2) {
     const xDifference = circle2.position.x - circle1.position.x;
     const yDifference = circle2.position.y - circle1.position.y;
     const distance = Math.sqrt(xDifference * xDifference + yDifference * yDifference);
+
     return distance <= circle1.radius + circle2.radius;
+}
+
+function circleTriangleCollision(circle, triangle) {
+    // Check if the circle is colliding with any of the triangle's edges
+    for (let i = 0; i < 3; i++) {
+        let start = triangle[i];
+        let end = triangle[(i + 1) % 3];
+
+        let dx = end.x - start.x;
+        let dy = end.y - start.y;
+        let length = Math.sqrt(dx * dx + dy * dy);
+
+        let dot = ((circle.position.x - start.x) * dx + (circle.position.y - start.y) * dy) / Math.pow(length, 2);
+
+        let closestX = start.x + dot * dx;
+        let closestY = start.y + dot * dy;
+
+        if (!isPointOnLineSegment(closestX, closestY, start, end)) {
+            closestX = closestX < start.x ? start.x : end.x;
+            closestY = closestY < start.y ? start.y : end.y;
+        }
+
+        dx = closestX - circle.position.x;
+        dy = closestY - circle.position.y;
+
+        let distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance <= circle.radius) {
+            return true;
+        }
+    }
+
+    // No collision
+    return false;
+}
+
+function isPointOnLineSegment(x, y, start, end) {
+    return (
+        x >= Math.min(start.x, end.x) &&
+        x <= Math.max(start.x, end.x) &&
+        y >= Math.min(start.y, end.y) &&
+        y <= Math.max(start.y, end.y)
+    );
 }
 
 function animate() {
     c.fillStyle = 'black';
     c.fillRect(0, 0, canvas.width, canvas.height);
-    window.requestAnimationFrame(animate);
+    const animationID =window.requestAnimationFrame(animate);
 
     player.update();
 
@@ -155,6 +217,12 @@ function animate() {
     for (let i = asteroids.length - 1; i >= 0; i--) {
         const asteroid = asteroids[i];
         asteroid.update();
+
+        if (circleTriangleCollision(asteroid, player.getVertices())) {
+            window.cancelAnimationFrame(animationID)
+            cancelInterval(intervalID)
+            
+        }
 
         for (let j = projectiles.length - 1; j >= 0; j--) {
             const projectile = projectiles[j];
@@ -187,7 +255,7 @@ function animate() {
 
     if (keys.a.pressed) {
         player.rotation -= ROTATIONAL_SPEED;
-    } 
+    }
     if (keys.d.pressed) {
         player.rotation += ROTATIONAL_SPEED;
     }
