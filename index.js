@@ -108,12 +108,10 @@ const asteroids = []; // Initialize the asteroids array
 
 // Add a new asteroid every 3 seconds
 window.setInterval(() => {
-
-    
     const x = Math.random() * canvas.width;
     const y = Math.random() * canvas.height;
-    const vx = (Math.random() - 0.5) * 4; // Random velocity between -1 and 1
-    const vy = (Math.random() - 0.5) * 4; // Random velocity between -1 and 1
+    const vx = (Math.random() - 0.5) * 4; // Random velocity between -2 and 2
+    const vy = (Math.random() - 0.5) * 4; // Random velocity between -2 and 2
 
     asteroids.push(
         new Asteroid({
@@ -122,6 +120,13 @@ window.setInterval(() => {
         })
     );
 }, 3000);
+
+function circleCollision(circle1, circle2) {
+    const xDifference = circle2.position.x - circle1.position.x;
+    const yDifference = circle2.position.y - circle1.position.y;
+    const distance = Math.sqrt(xDifference * xDifference + yDifference * yDifference);
+    return distance <= circle1.radius + circle2.radius;
+}
 
 function animate() {
     c.fillStyle = 'black';
@@ -150,6 +155,15 @@ function animate() {
     for (let i = asteroids.length - 1; i >= 0; i--) {
         const asteroid = asteroids[i];
         asteroid.update();
+
+        for (let j = projectiles.length - 1; j >= 0; j--) {
+            const projectile = projectiles[j];
+            if (circleCollision(asteroid, projectile)) {
+                asteroids.splice(i, 1);
+                projectiles.splice(j, 1);
+                break; // Exit loop after collision to avoid index issues
+            }
+        }
 
         // Remove asteroid if it goes off-screen
         if (
